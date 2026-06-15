@@ -1,11 +1,3 @@
-[server]
-headless = true
-enableCORS = false
-enableXsrfProtection = true
-
-[browser]
-gatherUsageStats = false
-
 [theme]
 primaryColor = "#1F3864"
 backgroundColor = "#f8f9fb"
