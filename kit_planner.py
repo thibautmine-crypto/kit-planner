@@ -5,7 +5,6 @@ Planification hebdomadaire avec gestion BOM, MOQ/multiple par ref, freeze, criti
 """
 
 import math
-import sys
 from dataclasses import dataclass, field
 from typing import Optional
 import openpyxl
@@ -484,44 +483,3 @@ def ecrire_rapport_composants(wb, rapport: list[dict]):
     ws.freeze_panes = "A2"
 
 
-# ─────────────────────────────────────────────
-# MAIN CLI
-# ─────────────────────────────────────────────
-
-def run(filepath: str):
-    print(f"Chargement : {filepath}")
-    wb = openpyxl.load_workbook(filepath)
-
-    params     = load_params(wb)
-    kits       = load_kits(wb, params)
-    bom        = load_bom(wb)
-    composants = load_composants(wb)
-
-    print(f"  {len(kits)} kits | {len(bom)} refs BOM | {len(composants)} composants")
-    print(f"  Capacité : {params.capacite_semaine} | Max lancements : {params.max_lancements}")
-
-    kits      = planifier(kits, bom, composants, params)
-    rapport   = calcul_rapport_composants(kits, bom, composants)
-
-    produits  = [k for k in kits.values() if k.production_planifiee > 0]
-    bloques   = [k for k in kits.values() if k.statut in ("Bloqué composants", "MOQ non atteignable")]
-    print(f"\n Produits   : {len(produits)} refs | {sum(k.production_planifiee for k in produits)} unités")
-    print(f" Bloqués    : {len(bloques)} refs")
-    print(f" Composants critiques : {len(rapport)}")
-
-    ecrire_plan_prod(wb, kits)
-    ecrire_rapport_composants(wb, rapport)
-
-    output_path = filepath.replace(".xlsx", "_planifie.xlsx")
-    if output_path == filepath:
-        output_path = filepath + "_planifie.xlsx"
-    wb.save(output_path)
-    print(f"\n Sauvegardé : {output_path}")
-    return output_path
-
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage : python kit_planner.py <fichier.xlsx>")
-        sys.exit(1)
-    run(sys.argv[1])
